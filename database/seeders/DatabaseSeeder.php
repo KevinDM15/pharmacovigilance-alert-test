@@ -20,8 +20,8 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->create([
             'name' => 'Pharmacovigilance Admin',
-            'username' => 'admin',
-            'password' => 'password',
+            'username' => env('SEED_ADMIN_USERNAME', 'admin'),
+            'password' => env('SEED_ADMIN_PASSWORD', 'password'),
         ]);
 
         $recalledMedication = Medication::factory()->create([
