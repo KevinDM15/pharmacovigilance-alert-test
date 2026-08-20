@@ -46,14 +46,23 @@ class OrderController extends Controller
             foreach ($orders as $order) {
                 fputcsv($handle, [
                     $order->id,
-                    $order->customer->name,
-                    $order->customer->email,
-                    $order->customer->phone,
+                    $this->escapeCsvField($order->customer->name),
+                    $this->escapeCsvField($order->customer->email),
+                    $this->escapeCsvField($order->customer->phone),
                     $order->purchase_date->toDateString(),
                 ]);
             }
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    private function escapeCsvField(?string $value): ?string
+    {
+        if ($value !== null && preg_match('/^[=+\-@\t\r]/', $value)) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 }
