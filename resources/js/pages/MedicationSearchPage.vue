@@ -129,7 +129,7 @@ async function exportCsv() {
     <div class="min-h-screen bg-page">
         <AppHeader />
 
-        <main class="mx-auto max-w-[1120px] px-6 py-9">
+        <main class="mx-auto max-w-280 px-6 py-9">
             <div class="overflow-hidden rounded-md border border-border bg-card">
                 <div class="border-b border-border bg-band px-8 pt-7 pb-6">
                     <div class="mb-5 flex flex-col gap-0.5">
@@ -223,7 +223,7 @@ async function exportCsv() {
 
                     <template v-else>
                         <div class="grid grid-cols-[26px_90px_1.4fr_1fr_auto] items-center gap-x-4 rounded-t border border-border bg-thead px-3 py-2.5">
-                            <input type="checkbox" class="h-[13px] w-[13px] accent-[#f5a524]" :checked="allSelected" @change="toggleSelectAll">
+                            <input type="checkbox" class="h-3.25 w-3.25 accent-[#f5a524]" :checked="allSelected" @change="toggleSelectAll">
                             <span class="font-mono text-[10px] font-medium tracking-[.12em] text-muted">ORDER ID</span>
                             <span class="font-mono text-[10px] font-medium tracking-[.12em] text-muted">CUSTOMER</span>
                             <span class="font-mono text-[10px] font-medium tracking-[.12em] text-muted">PURCHASE DATE</span>
@@ -237,7 +237,7 @@ async function exportCsv() {
                         >
                             <input
                                 type="checkbox"
-                                class="h-[13px] w-[13px] accent-[#f5a524]"
+                                class="h-3.25 w-3.25 accent-[#f5a524]"
                                 :checked="selectedIds.has(order.id)"
                                 @change="toggleSelected(order.id)"
                             >

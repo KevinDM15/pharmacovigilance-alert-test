@@ -34,7 +34,7 @@ async function handleSubmit() {
                     Rx
                 </span>
                 <div>
-                    <p class="font-mono text-xs font-semibold tracking-[.1em] text-ink">PHARMACOVIGILANCE</p>
+                    <p class="font-mono text-xs font-semibold tracking-widest text-ink">PHARMACOVIGILANCE</p>
                     <p class="font-mono text-xs text-muted">/ recall &amp; alert console</p>
                 </div>
             </div>

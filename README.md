@@ -1,58 +1,136 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Pharmacovigilance Alert System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Module for a compounding pharmacy to identify and notify customers who purchased a medication associated with a specific lot number, within a configurable date range.
 
-## About Laravel
+Built for the LifeFile Development Test: PHP/Laravel API, Vue 3 SPA, MySQL, RESTful endpoints.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Backend:** PHP 8.4, Laravel 13, Sanctum (token auth)
+- **Frontend:** Vue 3 SPA, Vue Router, Axios, Tailwind CSS v4
+- **Database:** MySQL 8.0
+- **Containers:** Docker / Podman (multi-stage build)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Quick start (Docker)
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+The fastest way to run the full application — backend, frontend, and database — with nothing installed locally except a container runtime.
 
 ```bash
-composer require laravel/boost --dev
+# 1. Generate an APP_KEY
+export APP_KEY="base64:$(openssl rand -base64 32)"
 
-php artisan boost:install
+# 2. Build and start everything
+docker compose up --build
+# or, with Podman:
+podman-compose up --build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The container runs migrations and seeds demo data automatically on first boot (idempotent — safe to restart). Once it's up:
 
-## Contributing
+- App: http://localhost:8000/pharmacovigilance/login
+- Login: `admin` / `password`
+- MySQL: exposed on `localhost:3306` (user `pharmacovigilance` / password `secret`) if you want to inspect the database with an external client
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+To use different credentials instead of the defaults, export `DB_PASSWORD`, `DB_ROOT_PASSWORD`, and/or `SEED_ADMIN_PASSWORD` before running `docker compose up`.
 
-## Code of Conduct
+## Local setup (without Docker)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Requires PHP 8.3+, Composer, Node 20+, pnpm, and a MySQL 8 instance reachable from your machine.
 
-## Security Vulnerabilities
+```bash
+composer install
+pnpm install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+cp .env.example .env
+php artisan key:generate
+```
 
-## License
+Edit `.env` with your database connection (`DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`). If you don't have MySQL installed locally, you can run just the database in a container:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+podman run -d --name pharmacovigilance-mysql \
+  -e MYSQL_ROOT_PASSWORD=root \
+  -e MYSQL_DATABASE=pharmacovigilance \
+  -e MYSQL_USER=pharmacovigilance \
+  -e MYSQL_PASSWORD=secret \
+  -p 3306:3306 \
+  docker.io/library/mysql:8.0
+```
+
+Then:
+
+```bash
+php artisan migrate --seed
+pnpm build
+
+php artisan serve
+```
+
+Visit `http://localhost:8000/pharmacovigilance/login` and sign in with `admin` / `password`.
+
+For frontend development with hot reload, run `pnpm dev` in a separate terminal instead of `pnpm build`.
+
+### Sending real alert emails
+
+By default `MAIL_MAILER=log`, so alert emails are written to `storage/logs/laravel.log` instead of being sent. To see them delivered, point `MAIL_*` at a real SMTP provider (or a local catcher like Mailpit) in `.env`.
+
+Alert emails are queued (`QUEUE_CONNECTION=database`). Run a worker to process them:
+
+```bash
+php artisan queue:work
+```
+
+## Demo data
+
+The seeder creates:
+
+- An admin user (`admin` / `password`, configurable via `SEED_ADMIN_USERNAME`/`SEED_ADMIN_PASSWORD`)
+- A medication with **lot number `951357`** (the test scenario's recalled lot)
+- 8 customers with orders for that lot — 5 within the last 30 days, 3 outside that range, so the date filter has something real to filter
+- Unrelated medications and orders as noise, so search results aren't "the entire database"
+
+Search for lot `951357` (pre-filled in the search field) to see the scenario in action.
+
+## API overview
+
+All endpoints except `/api/login` require a Sanctum bearer token (`Authorization: Bearer <token>`).
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/login` | Authenticate, returns a token |
+| POST | `/api/logout` | Revoke the current token |
+| GET | `/api/medications/search?lot=` | Confirm a lot exists in the catalog |
+| GET | `/api/orders?lot=&start_date=&end_date=` | List orders for a lot, paginated |
+| GET | `/api/orders/export?lot=&start_date=&end_date=` | Download matching orders as CSV |
+| GET | `/api/orders/{id}` | Order detail |
+| GET | `/api/customers/{id}` | Customer detail |
+| POST | `/api/alerts/send` | Send a recall alert email (single or bulk via `order_ids`) |
+
+## Design decisions
+
+- **`lot_number` lives on `medications`, not `order_items`.** The PDF's minimum schema defines it that way, which implies one medication = one production lot in this simplified model. A real system would likely track lots at the inventory/batch level, but the given schema doesn't ask for that, so this stays faithful to the spec rather than adding unrequested complexity.
+- **Authentication: Sanctum with bearer tokens**, not cookie-based SPA auth. Simpler to reason about and demo since frontend and backend share the same origin here, and it matches the PDF's explicit mention of "token-based authentication."
+- **Login is by `username`, not `email`**, per the PDF's explicit requirement — the default Laravel scaffold (which uses email) was adjusted accordingly.
+- **`medications/search` and `orders?lot=` are separate endpoints**, matching the two endpoints listed in the PDF. `medications/search` confirms the lot exists in the catalog; `orders` returns the actual transactional data. The frontend's search screen only calls `orders`, since the order data already carries enough medication info for the table.
+- **No role-based access control.** The PDF requires only that the module be restricted to *authenticated* users (`auth:sanctum` on every protected route) — it never defines distinct roles or an ownership relationship between staff users and customers/orders. This is an internal pharmacy panel: any authenticated staff member needs to see any order or customer to do their job (tracing who bought a recalled lot). Role-based access is listed as an optional bonus in the PDF and was intentionally left out of scope.
+- **CSV export streams the full filtered result**, not just the current page, since the point of exporting is usually to get everything matching a search, not one page of it. Output is escaped against CSV formula injection (fields starting with `=`, `+`, `-`, `@` are prefixed to prevent spreadsheet software from treating customer-supplied names as executable formulas).
+- **Alerts are queued** (`ShouldQueue` on the Mailable), so triggering a bulk alert doesn't block the HTTP response while dozens of emails send.
+- **Alert audit log includes `user_id`**, even though the PDF's minimum schema for `alerts` only lists `customer_id`, `order_id`, `sent_at`. Section 3.6 explicitly requires logging "user who triggered it," so that requirement took priority over the minimum schema listing.
+
+## Assumptions
+
+- The "last month" default filter is implemented as the last 30 days from the current date, applied when no `start_date`/`end_date` is provided.
+- A customer's `phone` is optional (nullable) since the PDF describes contact as "email/phone," suggesting either is acceptable; `email` is required since it's the mandatory notification channel.
+- `APP_DEBUG=true` is used in development/demo environments (including the Docker setup) to make debugging faster. In a real production deployment this **must** be `false` — leaving it on exposes stack traces in error responses.
+- SMS alerting (listed as a bonus) was not implemented; email is the required channel and was prioritized.
+
+## Bonus features implemented
+
+- Bulk alerting (select multiple orders, send one recall email each)
+- CSV export of search results
+- Docker / Podman setup for the full stack (not just the database)
+- Alert audit log (`alerts` table: who sent it, to whom, when)
+
+## Git workflow
+
+This repo follows a simplified Git Flow: `main` (stable) + `develop` (integration) + one `feature/*` branch per module, merged via pull request. See the closed PRs for the history of how each feature was built and reviewed.
