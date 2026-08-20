@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: docker.io/library/mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pharmacovigilance
+      MYSQL_USER: pharmacovigilance
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: Pharmacovigilance
+      APP_ENV: local
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: pharmacovigilance
+      DB_USERNAME: pharmacovigilance
+      DB_PASSWORD: secret
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+      MAIL_MAILER: log
+      SEED_ADMIN_USERNAME: admin
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-password}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
