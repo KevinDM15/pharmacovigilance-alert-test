@@ -2,66 +2,71 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../services/api';
+import { useToast } from '../stores/toast';
 import AppHeader from '../components/AppHeader.vue';
 import LotBadge from '../components/LotBadge.vue';
 import AlertModal from '../components/AlertModal.vue';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 
 const lot = ref(route.query.lot ?? '951357');
 const startDate = ref(route.query.start_date ?? '');
 const endDate = ref(route.query.end_date ?? '');
 
 const orders = ref([]);
+const meta = ref(null);
 const searchedLot = ref('');
 const isSearching = ref(false);
 const searchError = ref('');
 const hasSearched = ref(false);
+const isExporting = ref(false);
 
 const selectedIds = ref(new Set());
 const modalOrders = ref(null);
-const confirmation = ref('');
 
 const allSelected = computed(() => orders.value.length > 0 && selectedIds.value.size === orders.value.length);
 
-async function handleSearch() {
+function searchParams(page = 1) {
+    return {
+        lot: lot.value,
+        start_date: startDate.value || undefined,
+        end_date: endDate.value || undefined,
+        page,
+    };
+}
+
+async function handleSearch(page = 1) {
     isSearching.value = true;
     searchError.value = '';
-    confirmation.value = '';
     selectedIds.value = new Set();
 
-    router.replace({
-        query: {
-            lot: lot.value,
-            start_date: startDate.value || undefined,
-            end_date: endDate.value || undefined,
-        },
-    });
+    router.replace({ query: searchParams(page) });
 
     try {
-        const response = await api.get('/orders', {
-            params: {
-                lot: lot.value,
-                start_date: startDate.value || undefined,
-                end_date: endDate.value || undefined,
-            },
-        });
+        const response = await api.get('/orders', { params: searchParams(page) });
 
         orders.value = response.data.data;
+        meta.value = response.data.meta;
         searchedLot.value = lot.value;
         hasSearched.value = true;
     } catch (e) {
         orders.value = [];
+        meta.value = null;
         searchError.value = e.response?.data?.message ?? 'Unable to search orders. Please check your filters.';
     } finally {
         isSearching.value = false;
     }
 }
 
+function goToPage(page) {
+    handleSearch(page);
+}
+
 onMounted(() => {
     if (route.query.lot) {
-        handleSearch();
+        handleSearch(Number(route.query.page) || 1);
     }
 });
 
@@ -90,9 +95,33 @@ function openBulkAlert() {
 }
 
 function onAlertSent(message) {
-    confirmation.value = message;
+    toast.success(message);
     modalOrders.value = null;
     selectedIds.value = new Set();
+}
+
+async function exportCsv() {
+    isExporting.value = true;
+
+    try {
+        const response = await api.get('/orders/export', {
+            params: { lot: searchedLot.value, start_date: startDate.value || undefined, end_date: endDate.value || undefined },
+            responseType: 'blob',
+        });
+
+        const url = URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `orders-lot-${searchedLot.value}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        toast.success('CSV export downloaded.');
+    } catch (e) {
+        toast.error('Unable to export CSV.');
+    } finally {
+        isExporting.value = false;
+    }
 }
 </script>
 
@@ -159,20 +188,25 @@ function onAlertSent(message) {
                     {{ searchError }}
                 </p>
 
-                <div v-if="confirmation" class="flex items-center gap-2.5 border-b border-border bg-green-bg px-8 py-2.5">
-                    <span class="h-1.5 w-1.5 rounded-full bg-green"></span>
-                    <span class="text-[12.5px] text-green-text">{{ confirmation }}</span>
-                </div>
-
                 <div class="px-8 py-6">
                     <div class="mb-3 flex items-center gap-3">
                         <span class="text-sm font-semibold text-ink">Order results</span>
                         <LotBadge v-if="searchedLot" :lot="searchedLot" />
 
                         <button
+                            v-if="hasSearched && orders.length > 0"
+                            type="button"
+                            :disabled="isExporting"
+                            class="ml-auto rounded border border-ghost px-3 py-1.5 text-xs font-medium text-sub disabled:opacity-60"
+                            @click="exportCsv"
+                        >
+                            {{ isExporting ? 'Exporting…' : 'Export CSV' }}
+                        </button>
+
+                        <button
                             v-if="selectedIds.size > 0"
                             type="button"
-                            class="ml-auto rounded bg-[#e5484d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#f2555a]"
+                            class="rounded bg-[#e5484d] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#f2555a]"
                             @click="openBulkAlert"
                         >
                             Alert {{ selectedIds.size }} selected
@@ -235,6 +269,28 @@ function onAlertSent(message) {
                             </div>
                         </div>
                     </template>
+
+                    <div v-if="meta && meta.last_page > 1" class="mt-4 flex items-center justify-between text-[12.5px] text-sub">
+                        <span>Page {{ meta.current_page }} of {{ meta.last_page }} — {{ meta.total }} orders</span>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                :disabled="meta.current_page === 1"
+                                class="rounded border border-ghost px-3 py-1.5 text-[11.5px] font-medium text-sub disabled:opacity-40"
+                                @click="goToPage(meta.current_page - 1)"
+                            >
+                                Previous
+                            </button>
+                            <button
+                                type="button"
+                                :disabled="meta.current_page === meta.last_page"
+                                class="rounded border border-ghost px-3 py-1.5 text-[11.5px] font-medium text-sub disabled:opacity-40"
+                                @click="goToPage(meta.current_page + 1)"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

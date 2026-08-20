@@ -13,6 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/medications/search', [MedicationController::class, 'search']);
     Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/export', [OrderController::class, 'export']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
     Route::post('/alerts/send', [AlertController::class, 'send']);
