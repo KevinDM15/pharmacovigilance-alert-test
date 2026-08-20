@@ -1,9 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --color-page: var(--pv-page);
+    --color-card: var(--pv-card);
+    --color-band: var(--pv-band);
+    --color-thead: var(--pv-thead);
+    --color-border: var(--pv-border);
+    --color-line: var(--pv-line);
+    --color-ghost: var(--pv-ghost);
+    --color-ink: var(--pv-ink);
+    --color-sub: var(--pv-sub);
+    --color-muted: var(--pv-muted);
+    --color-amber: var(--pv-amber);
+
+    --color-green: var(--pv-green);
+    --color-green-bg: var(--pv-green-bg);
+    --color-green-text: var(--pv-green-text);
+
+    --color-red: var(--pv-red);
+    --color-red-bg: var(--pv-red-bg);
+    --color-red-border: var(--pv-red-border);
+}
+
+:root,
+[data-theme='dark'] {
+    --pv-page: #0d1114;
+    --pv-card: #12161b;
+    --pv-band: #161b21;
+    --pv-thead: #171d24;
+    --pv-border: #232b34;
+    --pv-line: #2c3641;
+    --pv-ghost: #2c3641;
+    --pv-ink: #e8edf2;
+    --pv-sub: #9aa7b4;
+    --pv-muted: #5c6875;
+    --pv-amber: #f5a524;
+    --pv-green: #4ade80;
+    --pv-green-bg: rgb(74 222 128 / 6%);
+    --pv-green-text: #a7d9b9;
+    --pv-red: #f87171;
+    --pv-red-bg: rgb(248 113 113 / 10%);
+    --pv-red-border: rgb(248 113 113 / 35%);
+}
+
+[data-theme='light'] {
+    --pv-page: #eef1f4;
+    --pv-card: #ffffff;
+    --pv-band: #f5f7f9;
+    --pv-thead: #eef1f4;
+    --pv-border: #dfe4e9;
+    --pv-line: #c6cdd4;
+    --pv-ghost: #cfd6dd;
+    --pv-ink: #16202a;
+    --pv-sub: #55636e;
+    --pv-muted: #8894a0;
+    --pv-amber: #9a5b00;
+    --pv-green: #15803d;
+    --pv-green-bg: rgb(21 128 61 / 7%);
+    --pv-green-text: #1f6b3d;
+    --pv-red: #c02b30;
+    --pv-red-bg: rgb(192 43 48 / 7%);
+    --pv-red-border: rgb(192 43 48 / 35%);
+}
+
+body {
+    font-family: var(--font-sans);
+    background: var(--pv-page);
+    color: var(--pv-ink);
 }
