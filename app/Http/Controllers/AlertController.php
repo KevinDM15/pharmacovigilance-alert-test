@@ -18,6 +18,7 @@ class AlertController extends Controller
 
         $orders = Order::with('customer')
             ->whereIn('id', $request->validated('order_ids'))
+            ->lot($medication->lot_number)
             ->get();
 
         foreach ($orders as $order) {
