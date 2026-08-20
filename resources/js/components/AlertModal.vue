@@ -70,7 +70,7 @@ async function confirmSend() {
                 <button
                     type="button"
                     :disabled="isSending"
-                    class="rounded bg-[#e5484d] px-4 py-2 text-sm font-semibold text-white hover:bg-[#f2555a] disabled:cursor-not-allowed disabled:opacity-60"
+                    class="rounded bg-[#e5484d] px-4 py-2 text-sm font-semibold text-white hover:bg-[#f2555a] disabled:opacity-60"
                     @click="confirmSend"
                 >
                     {{ isSending ? 'Sending…' : 'Send email' }}

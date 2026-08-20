@@ -75,3 +75,7 @@ body {
     background: var(--pv-page);
     color: var(--pv-ink);
 }
+
+button:not(:disabled) {
+    cursor: pointer;
+}

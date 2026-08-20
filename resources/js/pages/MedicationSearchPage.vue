@@ -146,9 +146,9 @@ function onAlertSent(message) {
                         <button
                             type="submit"
                             :disabled="isSearching"
-                            class="rounded bg-[#f5a524] px-6.5 py-2.5 text-[13px] font-semibold text-[#12161b] hover:bg-[#ffc04d] disabled:cursor-not-allowed disabled:opacity-60"
+                            class="rounded bg-[#f5a524] px-6.5 py-2.5 text-[13px] font-semibold text-[#12161b] hover:bg-[#ffc04d] disabled:opacity-60"
                         >
-                            {{ isSearching ? 'Searching…' : 'Search' }}
+                            Search
                         </button>
                     </form>
 

@@ -75,7 +75,7 @@ async function handleSubmit() {
                     <button
                         type="submit"
                         :disabled="isSubmitting"
-                        class="w-full rounded bg-[#f5a524] py-2.5 text-sm font-semibold text-[#12161b] transition-colors hover:bg-[#ffc04d] disabled:cursor-not-allowed disabled:opacity-60"
+                        class="w-full rounded bg-[#f5a524] py-2.5 text-sm font-semibold text-[#12161b] transition-colors hover:bg-[#ffc04d] disabled:opacity-60"
                     >
                         {{ isSubmitting ? 'Signing in…' : 'Sign in' }}
                     </button>
