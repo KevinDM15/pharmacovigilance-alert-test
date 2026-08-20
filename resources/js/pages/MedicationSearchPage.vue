@@ -164,7 +164,7 @@ function onAlertSent(message) {
                     <span class="text-[12.5px] text-green-text">{{ confirmation }}</span>
                 </div>
 
-                <div v-if="hasSearched" class="px-8 py-6">
+                <div class="px-8 py-6">
                     <div class="mb-3 flex items-center gap-3">
                         <span class="text-sm font-semibold text-ink">Order results</span>
                         <LotBadge v-if="searchedLot" :lot="searchedLot" />
@@ -179,7 +179,11 @@ function onAlertSent(message) {
                         </button>
                     </div>
 
-                    <p v-if="orders.length === 0" class="rounded border border-border px-4 py-8 text-center text-sm text-sub">
+                    <p v-if="!hasSearched" class="rounded border border-dashed border-border px-4 py-8 text-center text-sm text-sub">
+                        Search a lot number to see matching orders here.
+                    </p>
+
+                    <p v-else-if="orders.length === 0" class="rounded border border-border px-4 py-8 text-center text-sm text-sub">
                         No orders found for this lot in the selected date range.
                     </p>
 
@@ -244,3 +248,17 @@ function onAlertSent(message) {
         />
     </div>
 </template>
+
+<style scoped>
+input[type='date'] {
+    min-width: 0;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+    margin-left: 8px;
+}
+
+input[type='date']::-webkit-datetime-edit {
+    min-width: 90px;
+}
+</style>

@@ -28,15 +28,17 @@ async function handleLogout() {
         <div class="flex items-center gap-3.5">
             <button
                 type="button"
-                title="Toggle theme"
-                class="flex items-center gap-1.5 rounded-full border border-ghost px-3 py-1.5 font-mono text-[11px] font-medium tracking-[.06em] text-sub"
+                :title="theme.dark ? 'Switch to light mode' : 'Switch to dark mode'"
+                class="flex h-8 w-8 items-center justify-center rounded-full border border-ghost text-sub hover:text-ink"
                 @click="toggleTheme"
             >
-                <span
-                    class="h-2 w-2 rounded-full"
-                    :class="theme.dark ? 'bg-[#f5d78e]' : 'bg-ink'"
-                ></span>
-                {{ theme.dark ? 'DARK' : 'LIGHT' }}
+                <svg v-if="theme.dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                    <circle cx="12" cy="12" r="4" />
+                    <path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                    <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z" />
+                </svg>
             </button>
 
             <button type="button" class="text-xs font-medium text-sub hover:text-ink" @click="handleLogout">
