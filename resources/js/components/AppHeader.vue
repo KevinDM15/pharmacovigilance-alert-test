@@ -28,6 +28,14 @@ async function handleLogout() {
         <div class="flex items-center gap-3.5">
             <button
                 type="button"
+                class="text-xs font-medium text-sub hover:text-ink"
+                @click="router.push({ name: 'alert-audit' })"
+            >
+                Alert history
+            </button>
+
+            <button
+                type="button"
                 :title="theme.dark ? 'Switch to light mode' : 'Switch to dark mode'"
                 class="flex h-8 w-8 items-center justify-center rounded-full border border-ghost text-sub hover:text-ink"
                 @click="toggleTheme"

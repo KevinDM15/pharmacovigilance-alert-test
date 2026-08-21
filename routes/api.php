@@ -16,5 +16,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/export', [OrderController::class, 'export']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+    Route::get('/alerts', [AlertController::class, 'index']);
     Route::post('/alerts/send', [AlertController::class, 'send']);
 });

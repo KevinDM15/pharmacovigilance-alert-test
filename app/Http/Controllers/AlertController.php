@@ -3,15 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SendAlertRequest;
+use App\Http\Resources\AlertResource;
 use App\Mail\LotRecallAlert;
 use App\Models\Alert;
 use App\Models\Medication;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Mail;
 
 class AlertController extends Controller
 {
+    public function index(): AnonymousResourceCollection
+    {
+        $alerts = Alert::with(['customer', 'user'])
+            ->latest('sent_at')
+            ->paginate(15);
+
+        return AlertResource::collection($alerts);
+    }
+
     public function send(SendAlertRequest $request): JsonResponse
     {
         $medication = Medication::lot($request->validated('lot'))->firstOrFail();
