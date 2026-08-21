@@ -41,6 +41,14 @@ function formatDate(iso) {
         <AppHeader />
 
         <main class="mx-auto max-w-[1120px] px-6 py-9">
+            <button
+                type="button"
+                class="mb-4 text-sm text-sub hover:text-ink"
+                @click="router.push({ name: 'search' })"
+            >
+                ← Back to search
+            </button>
+
             <div class="overflow-hidden rounded-md border border-border bg-card">
                 <div class="border-b border-border bg-band px-8 pt-7 pb-6">
                     <span class="text-base font-semibold text-ink">Alert history</span>
