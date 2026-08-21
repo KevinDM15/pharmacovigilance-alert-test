@@ -25,7 +25,7 @@ docker compose up --build
 podman-compose up --build
 ```
 
-The container runs migrations and seeds demo data automatically on first boot (idempotent — safe to restart). Once it's up:
+The container runs migrations and seeds demo data automatically on first boot (idempotent, safe to restart). Once it's up:
 
 - App: http://localhost:8000/pharmacovigilance/login
 - Login: `admin` / `password`
@@ -86,7 +86,7 @@ The seeder creates:
 
 - An admin user (`admin` / `password`, configurable via `SEED_ADMIN_USERNAME`/`SEED_ADMIN_PASSWORD`)
 - A medication with **lot number `951357`** (the test scenario's recalled lot)
-- 8 customers with orders for that lot — 5 within the last 30 days, 3 outside that range, so the date filter has something real to filter
+- 8 customers with orders for that lot 5 within the last 30 days, 3 outside that range, so the date filter has something real to filter
 - Unrelated medications and orders as noise, so search results aren't "the entire database"
 
 Search for lot `951357` (pre-filled in the search field) to see the scenario in action.
@@ -108,21 +108,14 @@ All endpoints except `/api/login` require a Sanctum bearer token (`Authorization
 
 ## Design decisions
 
-- **`lot_number` lives on `medications`, not `order_items`.** The PDF's minimum schema defines it that way, which implies one medication = one production lot in this simplified model. A real system would likely track lots at the inventory/batch level, but the given schema doesn't ask for that, so this stays faithful to the spec rather than adding unrequested complexity.
-- **Authentication: Sanctum with bearer tokens**, not cookie-based SPA auth. Simpler to reason about and demo since frontend and backend share the same origin here, and it matches the PDF's explicit mention of "token-based authentication."
-- **Login is by `username`, not `email`**, per the PDF's explicit requirement — the default Laravel scaffold (which uses email) was adjusted accordingly.
-- **`medications/search` and `orders?lot=` are separate endpoints**, matching the two endpoints listed in the PDF. `medications/search` confirms the lot exists in the catalog; `orders` returns the actual transactional data. The frontend's search screen only calls `orders`, since the order data already carries enough medication info for the table.
-- **No role-based access control.** The PDF requires only that the module be restricted to *authenticated* users (`auth:sanctum` on every protected route) — it never defines distinct roles or an ownership relationship between staff users and customers/orders. This is an internal pharmacy panel: any authenticated staff member needs to see any order or customer to do their job (tracing who bought a recalled lot). Role-based access is listed as an optional bonus in the PDF and was intentionally left out of scope.
-- **CSV export streams the full filtered result**, not just the current page, since the point of exporting is usually to get everything matching a search, not one page of it. Output is escaped against CSV formula injection (fields starting with `=`, `+`, `-`, `@` are prefixed to prevent spreadsheet software from treating customer-supplied names as executable formulas).
-- **Alerts are queued** (`ShouldQueue` on the Mailable), so triggering a bulk alert doesn't block the HTTP response while dozens of emails send.
-- **Alert audit log includes `user_id`**, even though the PDF's minimum schema for `alerts` only lists `customer_id`, `order_id`, `sent_at`. Section 3.6 explicitly requires logging "user who triggered it," so that requirement took priority over the minimum schema listing.
-
-## Assumptions
-
-- The "last month" default filter is implemented as the last 30 days from the current date, applied when no `start_date`/`end_date` is provided.
-- A customer's `phone` is optional (nullable) since the PDF describes contact as "email/phone," suggesting either is acceptable; `email` is required since it's the mandatory notification channel.
-- `APP_DEBUG=true` is used in development/demo environments (including the Docker setup) to make debugging faster. In a real production deployment this **must** be `false` — leaving it on exposes stack traces in error responses.
-- SMS alerting (listed as a bonus) was not implemented; email is the required channel and was prioritized.
+- **Data model:** a medication's lot number lives on the `medications` table itself, not in a separate inventory table, one medication record represents one production lot.
+- **Authentication:** Sanctum with bearer tokens, not session cookies. Login is by `username`, not email. Tokens expire after 8 hours; login is rate-limited to 5 attempts per minute.
+- **Search architecture:** two separate endpoints — one confirms a lot exists in the catalog, the other returns the actual matching orders. The frontend only calls the second, since order data already carries what the table needs.
+- **Authorization:** authentication only, no distinct roles or ownership relationship between staff and customers/orders — any signed-in user can see and act on any record, since the whole point of the panel is tracing buyers of a recalled lot across the entire customer base.
+- **Alerts:** a single endpoint handles both individual and bulk sends (it takes a list of orders). Emails are queued instead of sent synchronously, so a bulk alert doesn't block the response. Each send is validated against the order actually containing the relevant lot before anything goes out.
+- **CSV export** downloads the full filtered result, not just the page currently on screen. Fields are sanitized against spreadsheet formula injection.
+- **Frontend:** SPA with Vue Router, simple shared state (no external state library), toast notifications anchored to a fixed corner, and search filters mirrored in the URL so results survive back-navigation.
+- **Infrastructure:** containers for both the database and the full application, with idempotent startup (won't duplicate demo data on restart) and credentials configurable via environment variables instead of hardcoded.
 
 ## Bonus features implemented
 
