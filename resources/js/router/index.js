@@ -4,6 +4,7 @@ import LoginPage from '../pages/LoginPage.vue';
 import MedicationSearchPage from '../pages/MedicationSearchPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
 import CustomerDetailPage from '../pages/CustomerDetailPage.vue';
+import AlertAuditPage from '../pages/AlertAuditPage.vue';
 
 const routes = [
     {
@@ -27,6 +28,12 @@ const routes = [
         path: '/pharmacovigilance/customers/:id',
         name: 'customer-detail',
         component: CustomerDetailPage,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/pharmacovigilance/alerts',
+        name: 'alert-audit',
+        component: AlertAuditPage,
         meta: { requiresAuth: true },
     },
 ];

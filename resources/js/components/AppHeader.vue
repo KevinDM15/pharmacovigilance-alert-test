@@ -15,7 +15,7 @@ async function handleLogout() {
 
 <template>
     <header class="flex items-center justify-between border-b border-border bg-card px-10 py-4">
-        <div class="flex items-center gap-3">
+        <button type="button" class="flex items-center gap-3" @click="router.push({ name: 'search' })">
             <span class="grid h-[26px] w-[26px] place-items-center rounded bg-[#4ade80] font-mono text-xs font-bold text-[#12161b]">
                 Rx
             </span>
@@ -23,9 +23,17 @@ async function handleLogout() {
                 <span class="font-mono text-[13px] font-semibold tracking-[.1em] text-ink">PHARMACOVIGILANCE</span>
                 <span class="font-mono text-[11px] text-muted">/ recall &amp; alert console</span>
             </div>
-        </div>
+        </button>
 
         <div class="flex items-center gap-3.5">
+            <button
+                type="button"
+                class="text-xs font-medium text-sub hover:text-ink"
+                @click="router.push({ name: 'alert-audit' })"
+            >
+                Alert history
+            </button>
+
             <button
                 type="button"
                 :title="theme.dark ? 'Switch to light mode' : 'Switch to dark mode'"
